@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Distributor</title>
+  <link rel='stylesheet' href="style.css">
+  <script src="https://cdn.rawgit.com/ethereum/web3.js/develop/dist/web3.js"></script>
+  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
+  <script src="https://cdn.rawgit.com/ethereumjs/browser-builds/2fb69a714afe092b06645286f14b94f41e5c062c/dist/ethereumjs-tx.js"></script>
+  <script src="./index.js"></script>
+</head>
+<body>
+  <div class="page-header">
+    <h2>Send tokens service</h2>
+  </div>
+
+  <div class="network-container">
+  <ul>Network:
+    <li>
+      <input type="radio" id="ropsten" name="network" value="ropsten" onclick="setNetwork('ropsten')" checked/>
+      <label for="ropsten">Ropsten (infura.io)</label>
+    </li>
+    <li>
+      <input type="radio" id="eth" name="network" value="eth" onclick="setNetwork('eth')"/>
+      <label for="eth">ETH (infura.io)</label>
+    </li>
+  </ul>
+  </div>
+
+  <div class="enter-container">
+    <div class="enter-form">
+      <div class="enter-form-group">
+        <label for="token">Token ERC20 contract address</label>
+        <input type="text" id="token" name="token"/>
+      </div>
+      <div class="info" id="tokenInfo"></div>
+      <input class="btn" type="submit" value="View token info" onclick="getTokenInfo()"/>
+      <div class="enter-form-group">
+        <label for="wallet">Wallet address</label>
+        <input type="text" id="wallet" name="wallet"/>
+      </div>
+      <div class="info" id="balanceInfo"></div>
+      <input class="btn" type="submit" value="View wallet balance" onclick="getBalanceInfo()"/>
+      <div class="enter-form-group">
+        <label for="key">Private key</label>
+        <input type="text" id="key" name="key"/>
+      </div>
+      <div class="info" id="unlockInfo"></div>
+      <input class="btn" type="submit" value="Unlock wallet" onclick="unlockWallet()"/>
+      <div class="enter-form-group">
+        <label for="receiver">Send tokens to addresses</label>
+        <textarea type="text" id="receiver" name="receiver"></textarea>
+      </div>
+      <input class="btn" type="submit" value="Unlock wallet and send tokens" onclick="sendTokens()"/>
+      <div class="info log" id="log"></div>
+    </div>
+  </div>
+</body>
+</html>
