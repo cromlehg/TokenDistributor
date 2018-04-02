@@ -2,6 +2,11 @@ const abi = JSON.parse('[{"constant":true,"inputs":[],"name":"mintingFinished","
 var web3;
 var ERC20Token;
 var contractInstance;
+var log;
+
+function viewLog() {
+  $("#log").html(log);
+};
 
 function init(_network) {
   if (_network == "ropsten"){
@@ -60,33 +65,26 @@ function unlockWallet() {
 };
 
 function sendTokens() {
-  let log = "Start";
-  $("#log").html(log);
-  setToken($("#token").val());
+  log = "Start";
+  viewLog();
+  let tokenAddress = $("#token").val();
+  setToken(tokenAddress);
   let walletAddress = $("#wallet").val();
   let walletBalance = getWalletBalance(walletAddress);
   let toAddress = $("#receiver").val();
   let privateKey = $("#key").val();
 
-  log += "<br>Approval";
-  $("#log").html(log);
+  //let sendValue = walletBalance;
+  let sendValue = 14000;
 
-
-  //contractInstance.approve(walletAddress, 600000, {from: walletAddress});
-  //let allowance = contractInstance.allowance.call(walletAddress, walletAddress);
-  //contractInstance.transferFrom(walletAddress, toAddress, 3000000, {from: walletAddress});
-
-
-/*
-  let data = contractInstance.transfer.getData(toAddress, 2000000, {from: walletAddress});
-  //let data = contractInstance.transferFrom.getData(walletAddress, toAddress, 2000000, {from: walletAddress});
-
+  /*--- first do approve ---*/
+  let data = contractInstance.approve.getData(walletAddress, sendValue, {from: walletAddress});
   let nonce = web3.toHex(web3.eth.getTransactionCount(walletAddress));
   let gasPrice = web3.toHex(web3.eth.gasPrice);
 
   let rawTransaction = {
     from: walletAddress,
-    to: toAddress,
+    to: tokenAddress,
     nonce: nonce,
     gasPrice: gasPrice,
     gasLimit: '0x30000',
@@ -94,9 +92,33 @@ function sendTokens() {
     data: data
   };
 
-  let tx = new EthJS.Tx(rawTransaction);
+  sendSignedTransactin(rawTransaction, privateKey);
 
-  privateKey = new EthJS.Buffer.Buffer(privateKey, 'hex');
+  /*--- then do transferFrom ---*/
+/*
+  data = contractInstance.transferFrom.getData(walletAddress, toAddress, sendValue, {from: walletAddress});
+  nonce = web3.toHex(web3.eth.getTransactionCount(walletAddress));
+  gasPrice = web3.toHex(web3.eth.gasPrice);
+
+  rawTransaction = {
+    from: walletAddress,
+    to: tokenAddress,
+    nonce: nonce,
+    gasPrice: gasPrice,
+    gasLimit: '0x30000',
+    value: "0x00",
+    data: data
+  };
+
+  sendSignedTransactin(rawTransaction, privateKey);
+*/
+  log += "<br>Done.";
+  viewLog();
+};
+
+function sendSignedTransactin(_rawTransaction, _privateKey) {
+  let tx = new EthJS.Tx(_rawTransaction);
+  let privateKey = new EthJS.Buffer.Buffer(_privateKey, 'hex');
   tx.sign(privateKey);
 
   let serializedTx = tx.serialize();
@@ -105,14 +127,16 @@ function sendTokens() {
     if (!err)
       {
         log += "<br>Hash: " + hash;
-        $("#log").html(log);
+        viewLog();
+        let txReceipt = web3.eth.getTransactionReceipt(hash);
+
+        log += "<br>Receipt: " + txReceipt;
+        viewLog();
       }
     else
       {
-        log += "<br>Error: " + err;
-        $("#log").html(log);
+        log += "<br>" + err;
+        viewLog();
       }
   });
-*/
-
 };
