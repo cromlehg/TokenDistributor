@@ -19,27 +19,34 @@ html, body{
 
 .enter-form{
   display: block;
+  width: 600px;
 }
 
 .enter-form-group{
-  width: 600px;
-  padding: 10px 0;
+  display: block;
+  width: 100%;
+  padding: 10px 0px;
 }
+
 .enter-form-group label{
   color: Salmon;
   text-align: center;
 }
 
-input, textarea {
+.enter-form-group input{
   width: 100%;
   padding: 5px;
   color: DimGray;
 }
 
+.btn, .info {
+  display: inline;
+}
+
 .btn{
   border: none;
   height: 30px;
-  width: 615px;
+  width: 40%;
   background-color: SteelBlue;
   color: Snow;
 }
@@ -48,17 +55,35 @@ input, textarea {
   background-color: LightSkyBlue;
 }
 
+.big-btn{
+  background-color: LimeGreen;
+}
+
+.big-btn:hover{
+  background-color: LightGreen;
+}
+
 .btn:active{
   background-color: Salmon;
 }
 
 .info{
   color: SteelBlue;
-  padding-bottom: 10px;
+  padding-left: 10px;
 }
 
 .log {
   padding-top: 10px;
+}
+
+a {
+  color: LimeGreen;
+  text-decoration: none;
+}
+
+a:hover {
+  color: LightGreen;
+  text-decoration: underline;
 }
 
 .network-container{

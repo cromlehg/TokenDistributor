@@ -2,7 +2,8 @@ const abi = JSON.parse('[{"constant":true,"inputs":[],"name":"mintingFinished","
 var web3;
 var ERC20Token;
 var contractInstance;
-var log;
+var log = "<br>";
+var networkHref = "https://ropsten.etherscan.io/tx/";
 
 function viewLog() {
   $("#log").html(log);
@@ -11,9 +12,11 @@ function viewLog() {
 function init(_network) {
   if (_network == "ropsten"){
     web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/bVnCJvRriSgJvp7ZeHuc"));
+    networkHref = "https://ropsten.etherscan.io/tx/";
   }
   if (_network == "eth"){
     web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/bVnCJvRriSgJvp7ZeHuc"));
+    networkHref = "https://etherscan.io/tx/";
   }
   ERC20Token = web3.eth.contract(abi);
 };
@@ -52,30 +55,20 @@ function getBalanceInfo() {
 
   let walletAddress = $("#wallet").val();
   let walletBalance = getWalletBalance(walletAddress);
-  $("#balanceInfo").html(walletAddress + " Balance: " + walletBalance.toString());
+  $("#balanceInfo").html("Balance: " + walletBalance.toString());
 };
 
 function unlockWallet() {
-  $("#unlockInfo").html("No information");
-  let walletAddress = $("#wallet").val();
-  let privateKey = $("#key").val();
-
-  $("#unlockInfo").html("Try to unlock: " + walletAddress);
-
-};
-
-function sendTokens() {
-  log = "Start";
-  viewLog();
   let tokenAddress = $("#token").val();
   setToken(tokenAddress);
   let walletAddress = $("#wallet").val();
   let walletBalance = getWalletBalance(walletAddress);
   let toAddress = $("#receiver").val();
   let privateKey = $("#key").val();
+  let sendValue = walletBalance;
 
-  //let sendValue = walletBalance;
-  let sendValue = 14000;
+  log += "<br><i>Prepare approve transaction...</i>";
+  viewLog();
 
   /*--- first do approve ---*/
   let data = contractInstance.approve.getData(walletAddress, sendValue, {from: walletAddress});
@@ -92,15 +85,31 @@ function sendTokens() {
     data: data
   };
 
-  sendSignedTransactin(rawTransaction, privateKey);
+  sendSignedTransaction(rawTransaction, privateKey);
+};
+
+function sendTokens() {
+  let tokenAddress = $("#token").val();
+  setToken(tokenAddress);
+  let walletAddress = $("#wallet").val();
+  let walletBalance = getWalletBalance(walletAddress);
+  let toAddress = $("#receiver").val();
+  let privateKey = $("#key").val();
+  let sendValue = $("#sendvalue").val();
+  let tokenSymbol = contractInstance.symbol.call().toString();
+
+  log += "<br><i>Prepare transfer transaction...</i>";
+  log += "<br>From " + walletAddress;
+  log += "<br>To " + toAddress;
+  log += "<br>" + sendValue + " " + tokenSymbol + " tokens";
+  viewLog();
 
   /*--- then do transferFrom ---*/
-/*
-  data = contractInstance.transferFrom.getData(walletAddress, toAddress, sendValue, {from: walletAddress});
-  nonce = web3.toHex(web3.eth.getTransactionCount(walletAddress));
-  gasPrice = web3.toHex(web3.eth.gasPrice);
+  let data = contractInstance.transferFrom.getData(walletAddress, toAddress, sendValue, {from: walletAddress});
+  let nonce = web3.toHex(web3.eth.getTransactionCount(walletAddress));
+  let gasPrice = web3.toHex(web3.eth.gasPrice);
 
-  rawTransaction = {
+  let rawTransaction = {
     from: walletAddress,
     to: tokenAddress,
     nonce: nonce,
@@ -110,32 +119,37 @@ function sendTokens() {
     data: data
   };
 
-  sendSignedTransactin(rawTransaction, privateKey);
-*/
-  log += "<br>Done.";
-  viewLog();
+  sendSignedTransaction(rawTransaction, privateKey);
 };
 
-function sendSignedTransactin(_rawTransaction, _privateKey) {
+function sendSignedTransaction(_rawTransaction, _privateKey) {
   let tx = new EthJS.Tx(_rawTransaction);
   let privateKey = new EthJS.Buffer.Buffer(_privateKey, 'hex');
   tx.sign(privateKey);
 
   let serializedTx = tx.serialize();
 
+  log += "<br>Send transaction...";
+  viewLog();
+
   web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
     if (!err)
       {
         log += "<br>Hash: " + hash;
+        log += "<br><a target='_blank' href='" + networkHref + hash + "'>View transaction info</a>";
         viewLog();
         let txReceipt = web3.eth.getTransactionReceipt(hash);
+        while (txReceipt == null){
+          txReceipt = web3.eth.getTransactionReceipt(hash);
+        }
 
-        log += "<br>Receipt: " + txReceipt;
+        log += "<br>Transaction is success.<br>";
         viewLog();
       }
     else
       {
         log += "<br>" + err;
+        log += "<br>Transaction is fail.<br>";
         viewLog();
       }
   });

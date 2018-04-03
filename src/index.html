@@ -12,6 +12,7 @@
   <script src="./index.js"></script>
 </head>
 <body>
+
   <div class="page-header">
     <h2>Send tokens service</h2>
   </div>
@@ -35,27 +36,41 @@
         <label for="token">Token ERC20 contract address</label>
         <input type="text" id="token" name="token"/>
       </div>
-      <div class="info" id="tokenInfo"></div>
+
       <input class="btn" type="submit" value="View token info" onclick="getTokenInfo()"/>
+      <div class="info" id="tokenInfo"></div>
+
       <div class="enter-form-group">
-        <label for="wallet">Wallet address</label>
+        <label for="wallet">Your wallet address</label>
         <input type="text" id="wallet" name="wallet"/>
       </div>
-      <div class="info" id="balanceInfo"></div>
+
       <input class="btn" type="submit" value="View wallet balance" onclick="getBalanceInfo()"/>
+      <div class="info" id="balanceInfo"></div>
+
       <div class="enter-form-group">
         <label for="key">Private key</label>
         <input type="text" id="key" name="key"/>
       </div>
+
+      <input class="btn" type="submit" value="Approve wallet balance" onclick="unlockWallet()"/>
       <div class="info" id="unlockInfo"></div>
-      <input class="btn" type="submit" value="Unlock wallet" onclick="unlockWallet()"/>
+
       <div class="enter-form-group">
-        <label for="receiver">Send tokens to addresses</label>
-        <textarea type="text" id="receiver" name="receiver"></textarea>
+        <label for="receiver">Receiver address</label>
+        <input type="text" id="receiver" name="receiver"/>
       </div>
-      <input class="btn" type="submit" value="Unlock wallet and send tokens" onclick="sendTokens()"/>
+
+      <div class="enter-form-group">
+        <label for="sendvalue">Tokens amount to send</label>
+        <input type="text" id="sendvalue" name="sendvalue"/>
+      </div>
+
+      <input class="btn big-btn" type="submit" value="Send tokens" onclick="sendTokens()"/>
       <div class="info log" id="log"></div>
+
     </div>
   </div>
+
 </body>
 </html>
