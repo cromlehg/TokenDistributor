@@ -18,7 +18,8 @@
   </div>
 
   <div class="network-container">
-  <ul>Network:
+  <p>Network:</p>
+  <ul class="network-menu">
     <li>
       <input type="radio" id="ropsten" name="network" value="ropsten" onclick="setNetwork('ropsten')" checked/>
       <label for="ropsten">Ropsten (infura.io)</label>
@@ -30,47 +31,53 @@
   </ul>
   </div>
 
+  <div class="main-container">
   <div class="enter-container">
     <div class="enter-form">
       <div class="enter-form-group">
         <label for="token">Token ERC20 contract address</label>
-        <input type="text" id="token" name="token"/>
+        <input type="text" id="token" name="token" />
+        <div class="info view" id="tokenInfo"></div>
       </div>
-
-      <input class="btn" type="submit" value="View token info" onclick="getTokenInfo()"/>
-      <div class="info" id="tokenInfo"></div>
-
       <div class="enter-form-group">
         <label for="wallet">Your wallet address</label>
-        <input type="text" id="wallet" name="wallet"/>
+        <input type="text" id="wallet" name="wallet" />
+        <div class="info view" id="balanceInfo"></div>
       </div>
-
-      <input class="btn" type="submit" value="View wallet balance" onclick="getBalanceInfo()"/>
-      <div class="info" id="balanceInfo"></div>
-
       <div class="enter-form-group">
         <label for="key">Private key</label>
         <input type="text" id="key" name="key"/>
       </div>
-
-      <input class="btn" type="submit" value="Approve wallet balance" onclick="unlockWallet()"/>
-      <div class="info" id="unlockInfo"></div>
-
       <div class="enter-form-group">
-        <label for="receiver">Receiver address</label>
-        <input type="text" id="receiver" name="receiver"/>
+        <label for="receiver">Receiver addresses</label>
+        <textarea rows="5" id="receiver" name="receiver" placeholder="Separate addresses by <Enter>"></textarea>
       </div>
-
       <div class="enter-form-group">
         <label for="sendvalue">Tokens amount to send</label>
         <input type="text" id="sendvalue" name="sendvalue"/>
       </div>
+      <input class="btn" type="submit" value="Unlock wallet and send tokens" />
+    </div>
 
-      <input class="btn big-btn" type="submit" value="Send tokens" onclick="sendTokens()"/>
-      <div class="info log" id="log"></div>
-
+    <div class="report-form">
+      <div class="info report" id="report">
+        <table class="report-table" id="table">
+          <caption>Report table</caption>
+          <tr>
+            <th width="5%"></th>
+            <th width="50%">Address</th>
+            <th width="20%">Amount</th>
+            <th width="15%">Status</th>
+          </tr>
+        </table>
+      </div>
     </div>
   </div>
 
+  <div class="log-form">
+    <div class="info log" id="log">Log info:</div>
+  </div>
+
+  </div>
 </body>
 </html>

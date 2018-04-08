@@ -1,79 +1,131 @@
 html, body{
-  margin: 0px;
-  padding: 0px;
-  width: 100%;
-  height: 100%;
+  margin: 0;
+  padding: 0;
+  min-width: 480px;
+}
+
+h2{
+  color: SteelBlue;
+  text-align: center;
+}
+
+p{
+  color: SteelBlue;
+  text-align: left;
 }
 
 .page-header{
-  text-align: center;
-  color: SteelBlue;
+  padding: 0 5px;
+}
+
+.network-container{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  padding: 0 5px;
+  background-color: WhiteSmoke;
+}
+
+.network-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.network-menu li{
+  list-style: none;
+  color: DimGray;
+}
+
+.main-container{
+  display: flex;
+  flex-direction: column;
 }
 
 .enter-container{
   display: flex;
-  height: 100%;
-  align-items: top;
+  flex-direction: row;
   justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.log-form{
+  width: 100%;
+}
+
+.report-form{
+  width: 480px;
 }
 
 .enter-form{
-  display: block;
-  width: 600px;
+  width: 470px;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
 }
 
 .enter-form-group{
   display: block;
-  width: 100%;
-  padding: 10px 0px;
+  margin: 10px 0;
 }
 
 .enter-form-group label{
   color: Salmon;
-  text-align: center;
 }
 
-.enter-form-group input{
-  width: 100%;
+.enter-form-group input, textarea{
+  width: 455px;
   padding: 5px;
+  outline: none;
   color: DimGray;
 }
 
-.btn, .info {
-  display: inline;
+input:-webkit-autofill {
+  -webkit-box-shadow: inset 0 0 0 50px White !important;
+  -webkit-text-fill-color: DimGray !important;
+  color: DimGray !important
+}
+
+.enter-form-group textarea{
+  resize: vertical;
 }
 
 .btn{
   border: none;
   height: 30px;
-  width: 40%;
+  width: 100%;
   background-color: SteelBlue;
   color: Snow;
+  align-self: center;
 }
 
 .btn:hover{
   background-color: LightSkyBlue;
 }
 
-.big-btn{
-  background-color: LimeGreen;
-}
-
-.big-btn:hover{
-  background-color: LightGreen;
-}
-
 .btn:active{
   background-color: Salmon;
 }
 
-.info{
-  color: SteelBlue;
-  padding-left: 10px;
+.view{
+  height: 1em;
 }
 
-.log {
-  padding-top: 10px;
+.info{
+  color: SteelBlue;
+  padding: 5px;
+}
+
+.log{
+  border: 1px solid SteelBlue;
+  margin: 5px;
+  white-space: pre-line;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.report{
+  margin: 5px;
 }
 
 a {
@@ -86,17 +138,25 @@ a:hover {
   text-decoration: underline;
 }
 
-.network-container{
-  display: flex;
-  background-color: WhiteSmoke;
+.report-table{
+  border-collapse: collapse;
+  width: 100%;
 }
 
-.network-container ul{
-  color: SteelBlue;
+.report-table th, td{
+  text-align: left;
+  padding: 5px;
 }
 
-.network-container li{
-  display: inline-flex;
-  list-style: none;
-  color: DimGray;
+.report-table td:first-child {
+  font-weight: bold;
+}
+
+.report-table tr {
+  border-bottom: 1px solid SteelBlue;
+  padding: 5px;
+}
+
+.report-table tr:last-child {
+  border: none;
 }

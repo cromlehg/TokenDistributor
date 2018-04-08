@@ -2,11 +2,10 @@ const abi = JSON.parse('[{"constant":true,"inputs":[],"name":"mintingFinished","
 var web3;
 var ERC20Token;
 var contractInstance;
-var log = "<br>";
 var networkHref = "https://ropsten.etherscan.io/tx/";
 
-function viewLog() {
-  $("#log").html(log);
+function viewLog(_log) {
+  $("#log").append(_log);
 };
 
 function init(_network) {
@@ -30,17 +29,40 @@ function setNetwork(_network) {
 };
 
 function setToken(_tokenAddress) {
-  contractInstance = ERC20Token.at(_tokenAddress);
+  try{
+    contractInstance = ERC20Token.at(_tokenAddress);
+    let tokenName = contractInstance.name.call().toString;
+  }
+  catch(error){
+    throw error;
+  }
 };
 
 function getWalletBalance(_walletAddress) {
   return contractInstance.balanceOf.call(_walletAddress);
 };
 
+function getReceiversList(){
+  return $("#receiver").val().split('\n');
+};
+
+function clearInfo(){
+  $("#log").html("Log info:");
+  $('#table tr:not(:first)').remove();
+}
+
+$(document).on("input",function(ev){
+  clearInfo();
+});
+
 function getTokenInfo() {
   $("#tokenInfo").html("Unknown token");
   let tokenAddress = $("#token").val();
-  setToken(tokenAddress);
+  try {
+    setToken(tokenAddress);
+  } catch (error){
+    return false;
+  }
 
   let tokenName = contractInstance.name.call().toString();
   let tokenSymbol = contractInstance.symbol.call().toString();
@@ -48,109 +70,221 @@ function getTokenInfo() {
   $("#tokenInfo").html(tokenName + "(" + tokenSymbol + ") Total supply: " + tokenTotalSupply);
 };
 
+$(function(){
+  $("#token").on("blur", function(){
+    getTokenInfo();
+  });
+});
+
+
 function getBalanceInfo() {
   $("#balanceInfo").html("No balance info");
   let tokenAddress = $("#token").val();
-  setToken(tokenAddress);
+  try {
+    setToken(tokenAddress);
+  } catch (error){
+    return false;
+  }
 
   let walletAddress = $("#wallet").val();
   let walletBalance = getWalletBalance(walletAddress);
   $("#balanceInfo").html("Balance: " + walletBalance.toString());
 };
 
-function unlockWallet() {
-  let tokenAddress = $("#token").val();
-  setToken(tokenAddress);
-  let walletAddress = $("#wallet").val();
-  let walletBalance = getWalletBalance(walletAddress);
-  let toAddress = $("#receiver").val();
-  let privateKey = $("#key").val();
-  let sendValue = walletBalance;
+$(function(){
+  $("#wallet").on("blur", function(){
+    getBalanceInfo();
+  });
+});
 
-  log += "<br><i>Prepare approve transaction...</i>";
-  viewLog();
-
-  /*--- first do approve ---*/
-  let data = contractInstance.approve.getData(walletAddress, sendValue, {from: walletAddress});
-  let nonce = web3.toHex(web3.eth.getTransactionCount(walletAddress));
-  let gasPrice = web3.toHex(web3.eth.gasPrice);
-
-  let rawTransaction = {
-    from: walletAddress,
-    to: tokenAddress,
-    nonce: nonce,
-    gasPrice: gasPrice,
-    gasLimit: '0x30000',
-    value: "0x00",
-    data: data
-  };
-
-  sendSignedTransaction(rawTransaction, privateKey);
+function getPersonalAmount(_walletBalance, _receivers){
+  let receiversNumber = _receivers.length;
+  if (receiversNumber != 0){
+    return Math.floor(_walletBalance / receiversNumber);
+  }
+  return 0;
 };
 
 function sendTokens() {
   let tokenAddress = $("#token").val();
-  setToken(tokenAddress);
-  let walletAddress = $("#wallet").val();
-  let walletBalance = getWalletBalance(walletAddress);
-  let toAddress = $("#receiver").val();
-  let privateKey = $("#key").val();
-  let sendValue = $("#sendvalue").val();
+  try{
+    setToken(tokenAddress);
+  }
+  catch(error){
+    throw new Error("<br>Token identification error: " + error.message);
+  }
+
   let tokenSymbol = contractInstance.symbol.call().toString();
 
-  log += "<br><i>Prepare transfer transaction...</i>";
-  log += "<br>From " + walletAddress;
-  log += "<br>To " + toAddress;
-  log += "<br>" + sendValue + " " + tokenSymbol + " tokens";
-  viewLog();
+  let walletAddress = $("#wallet").val();
+  if(walletAddress == ""){
+    throw new Error("<br>No wallet address entered.");
+  }
+  let walletBalance = getWalletBalance(walletAddress);
+  if (walletBalance == 0){
+    throw new Error("<br>You have no tokens to send: wallet balance = 0");
+  }
 
-  /*--- then do transferFrom ---*/
-  let data = contractInstance.transferFrom.getData(walletAddress, toAddress, sendValue, {from: walletAddress});
-  let nonce = web3.toHex(web3.eth.getTransactionCount(walletAddress));
-  let gasPrice = web3.toHex(web3.eth.gasPrice);
+  let privateKey = $("#key").val();
+  if(privateKey == ""){
+    throw new Error("<br>No private key entered.");
+  }
 
-  let rawTransaction = {
-    from: walletAddress,
-    to: tokenAddress,
-    nonce: nonce,
-    gasPrice: gasPrice,
-    gasLimit: '0x30000',
-    value: "0x00",
-    data: data
-  };
+  let key;
+  try{
+    key = new EthJS.Buffer.Buffer(privateKey, 'hex');
+  }
+  catch(error){
+    throw new Error("<br>Private key convert error: " + error.message);
+  }
 
-  sendSignedTransaction(rawTransaction, privateKey);
-};
+  let toAddress = $("#receiver").val();
+  let receivers = getReceiversList();
 
-function sendSignedTransaction(_rawTransaction, _privateKey) {
-  let tx = new EthJS.Tx(_rawTransaction);
-  let privateKey = new EthJS.Buffer.Buffer(_privateKey, 'hex');
-  tx.sign(privateKey);
+  if(receivers == ""){
+    throw new Error("<br>No receivers addresses entered.");
+  }
 
-  let serializedTx = tx.serialize();
+  let sendValue = $("#sendvalue").val();
+  sendValue = getPersonalAmount(sendValue, receivers);
+  if(sendValue == 0){
+    throw new Error("<br>Not enough tokens for all receivers.");
+  }
 
-  log += "<br>Send transaction...";
-  viewLog();
+  let nonce;
+  let prevNonce;
 
-  web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
-    if (!err)
-      {
-        log += "<br>Hash: " + hash;
-        log += "<br><a target='_blank' href='" + networkHref + hash + "'>View transaction info</a>";
-        viewLog();
-        let txReceipt = web3.eth.getTransactionReceipt(hash);
-        while (txReceipt == null){
-          txReceipt = web3.eth.getTransactionReceipt(hash);
+  nonce = web3.eth.getTransactionCount(walletAddress);
+  if (nonce != 0){
+    prevNonce = nonce - 1;
+  }
+
+  let allowance = contractInstance.allowance.call(walletAddress, walletAddress);
+
+  if (allowance < sendValue){
+    viewLog("<br><i>Prepare approve transaction...</i>");
+
+    let data = contractInstance.approve.getData(walletAddress, walletBalance, {from: walletAddress});
+
+    let gasPrice = web3.toHex(web3.eth.gasPrice);
+    let rawTransaction = {
+      from: walletAddress,
+      to: tokenAddress,
+      nonce: web3.toHex(nonce),
+      gasPrice: gasPrice,
+      gasLimit: '0x30000',
+      value: "0x00",
+      data: data
+    };
+
+    let tx = new EthJS.Tx(rawTransaction);
+    tx.sign(key);
+
+    let serializedTx = tx.serialize();
+
+    viewLog("<br>Send approve transaction...");
+
+    prevNonce = nonce;
+
+    web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
+      if (!err)
+        {
+          viewLog("<br>Hash: " + hash);
+          viewLog("<br><a target='_blank' href='" + networkHref + hash + "'>View transaction info</a>");
+          let txReceipt;
+          while (!txReceipt){
+            txReceipt = web3.eth.getTransactionReceipt(hash);
+          }
+          viewLog("<br>Approve transaction completed.<br>");
         }
+      else
+        {
+          throw new Error("<br>" + err + "<br>Approve transaction failed.<br>");
+        }
+    });
 
-        log += "<br>Transaction is success.<br>";
-        viewLog();
-      }
-    else
-      {
-        log += "<br>" + err;
-        log += "<br>Transaction is fail.<br>";
-        viewLog();
-      }
-  });
+    nonce = web3.eth.getTransactionCount(walletAddress);
+    while(prevNonce == nonce){
+      nonce = web3.eth.getTransactionCount(walletAddress);
+    }
+  }
+
+  viewLog("<br><i>Prepare transfer transactions...</i>");
+  viewLog("<br>From " + walletAddress);
+  viewLog("<br>To " + toAddress);
+  viewLog("<br>" + sendValue + " " + tokenSymbol + " tokens to each");
+
+  for(let i = 0; i < receivers.length; i++){
+    $("#table").last().append("<tr><td>" + (i + 1) + "</td><td>"
+      + receivers[i] + "</td><td>" + sendValue + "</td><td id='status" + i + "'>pending...</td></tr>");
+
+    data = contractInstance.transferFrom.getData(walletAddress, receivers[i], sendValue, {from: walletAddress});
+
+    nonce = web3.eth.getTransactionCount(walletAddress);
+    while(prevNonce == nonce){
+      nonce = web3.eth.getTransactionCount(walletAddress);
+    }
+
+    gasPrice = web3.toHex(web3.eth.gasPrice);
+    rawTransaction = {
+      from: walletAddress,
+      to: tokenAddress,
+      nonce: web3.toHex(nonce),
+      gasPrice: gasPrice,
+      gasLimit: '0x30000',
+      value: "0x00",
+      data: data
+    };
+
+    tx = new EthJS.Tx(rawTransaction);
+    tx.sign(key);
+
+    serializedTx = tx.serialize();
+
+    viewLog("<br>Send transfer transaction " + (i + 1) + "...");
+
+    prevNonce = nonce;
+    web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
+      if (!err)
+        {
+          viewLog("<br>Hash: " + hash);
+          viewLog("<br><a target='_blank' href='" + networkHref + hash + "'>View transaction info</a>");
+          txReceipt = web3.eth.getTransactionReceipt(hash);
+          while (txReceipt == null){
+           txReceipt = web3.eth.getTransactionReceipt(hash);
+          }
+          viewLog("<br>Transfer transaction completed.<br>");
+          $("#status" + i).html("<a target='_blank' href='" + networkHref + hash + "'>ready</a>");
+        }
+      else
+        {
+          viewLog("<br>" + err + "<br>Transfer transaction failed.<br>");
+          $("#status" + i).html("error");
+          nonce = web3.eth.getTransactionCount(walletAddress);
+          if(nonce != 0){
+            prevNonce = web3.eth.getTransactionCount(walletAddress) - 1;
+          }
+          else{
+            prevNonce = null;
+          }
+        }
+    });
+  }
+
 };
+
+$(function(){
+  $(".btn").on("click", function(){
+    clearInfo();
+    viewLog("<br>You press Unlock wallet and send tokens Button...");
+    try{
+      sendTokens();
+    }
+    catch(error){
+      viewLog("<br>Some errors occured: " + error.message);
+    }
+    finally{
+      viewLog("<br>Processing finished.");
+    }
+  });
+});
